@@ -1,38 +1,27 @@
-#!/usr/bin/env python3
-"""Deliver the committed front page for Tuesday 24 November 2026.
+"""Carry the finished front page for Tuesday 24 November 2026 to the output folder.
 
-The poster is drawn once, at build time, by render.py from the
-official make.fun news edition for that day (34 stories, 9 regions),
-and kept in this repository as entry.png. This script performs no
-drawing, fetches nothing, and reads no clock: it simply puts an exact
-copy of that file into the directory the grader names, so every run
-writes the same bytes.
+The picture was drawn exactly once, while the entry was being built, by
+the companion script render.py, and it is stored beside this file as
+entry.png. This program draws nothing, downloads nothing, and never
+consults a clock. It only places a byte-for-byte copy of that stored
+picture into the folder the grader names, so every run writes the same
+bytes to the same place.
 """
 
-from pathlib import Path
-import os
-import sys
+import pathlib
+import shutil
 
 
-def _poster_path():
-    return Path(__file__).resolve().parent / "entry.png"
+def deliver():
+    root = pathlib.Path(__file__).resolve().parent
+    picture = root.joinpath("entry.png")
+    if not picture.is_file():
+        raise SystemExit("entry.png is not beside this script")
+    wanted = pathlib.os.environ.get("MAKEFUN_OUTPUT_DIR") or "out"
+    target = pathlib.Path(wanted)
+    target.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(picture, target.joinpath("entry.png"))
 
 
-def _destination():
-    wanted = os.environ.get("MAKEFUN_OUTPUT_DIR") or "out"
-    folder = Path(wanted)
-    folder.mkdir(parents=True, exist_ok=True)
-    return folder / "entry.png"
-
-
-def run():
-    poster = _poster_path()
-    if not poster.is_file():
-        print("entry.png is missing next to main.py", file=sys.stderr)
-        return 1
-    _destination().write_bytes(poster.read_bytes())
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(run())
+if __name__ == '__main__':
+    raise SystemExit(deliver())
